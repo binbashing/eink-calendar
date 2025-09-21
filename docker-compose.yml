@@ -1,0 +1,15 @@
+services:
+  calendar-app:
+    build: .
+    ports:
+      - "4000:4000"
+      - "4001:4001"
+    environment:
+      - NODE_ENV=development
+    restart: unless-stopped
+    volumes:
+      - ./:/app
+      - /app/node_modules
+      - renders:/renders
+volumes:
+  renders:
