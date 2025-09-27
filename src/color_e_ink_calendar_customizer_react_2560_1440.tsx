@@ -63,62 +63,117 @@ function ymd(d: Date) {
   return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 }
 
-// Google Fonts collection
+// Comprehensive Google Fonts collection (organized by categories)
 const GOOGLE_FONTS = [
-  // System fonts
-  { name: "Arial", value: "Arial, sans-serif" },
-  { name: "Times New Roman", value: "Times New Roman, serif" },
-  { name: "Georgia", value: "Georgia, serif" },
-  { name: "Helvetica", value: "Helvetica, sans-serif" },
-  { name: "Verdana", value: "Verdana, sans-serif" },
+  // === SYSTEM FONTS ===
+  { name: "Arial", value: "Arial, sans-serif", category: "System" },
+  { name: "Times New Roman", value: "Times New Roman, serif", category: "System" },
+  { name: "Georgia", value: "Georgia, serif", category: "System" },
+  { name: "Helvetica", value: "Helvetica, sans-serif", category: "System" },
+  { name: "Verdana", value: "Verdana, sans-serif", category: "System" },
   
-  // Popular Sans-Serif
-  { name: "Inter", value: "Inter, sans-serif" },
-  { name: "Roboto", value: "Roboto, sans-serif" },
-  { name: "Open Sans", value: "Open Sans, sans-serif" },
-  { name: "Lato", value: "Lato, sans-serif" },
-  { name: "Montserrat", value: "Montserrat, sans-serif" },
-  { name: "Poppins", value: "Poppins, sans-serif" },
-  { name: "Nunito", value: "Nunito, sans-serif" },
-  { name: "Source Sans Pro", value: "Source Sans Pro, sans-serif" },
-  { name: "Ubuntu", value: "Ubuntu, sans-serif" },
-  { name: "Raleway", value: "Raleway, sans-serif" },
-  { name: "Work Sans", value: "Work Sans, sans-serif" },
-  { name: "Fira Sans", value: "Fira Sans, sans-serif" },
-  { name: "PT Sans", value: "PT Sans, sans-serif" },
-  { name: "Noto Sans", value: "Noto Sans, sans-serif" },
-  { name: "Droid Sans", value: "Droid Sans, sans-serif" },
-  { name: "Oxygen", value: "Oxygen, sans-serif" },
-  { name: "Arimo", value: "Arimo, sans-serif" },
+  // === POPULAR SANS-SERIF ===
+  { name: "Inter", value: "Inter, sans-serif", category: "Sans-serif" },
+  { name: "Roboto", value: "Roboto, sans-serif", category: "Sans-serif" },
+  { name: "Open Sans", value: "Open Sans, sans-serif", category: "Sans-serif" },
+  { name: "Lato", value: "Lato, sans-serif", category: "Sans-serif" },
+  { name: "Montserrat", value: "Montserrat, sans-serif", category: "Sans-serif" },
+  { name: "Poppins", value: "Poppins, sans-serif", category: "Sans-serif" },
+  { name: "Nunito", value: "Nunito, sans-serif", category: "Sans-serif" },
+  { name: "Source Sans Pro", value: "Source Sans Pro, sans-serif", category: "Sans-serif" },
+  { name: "Ubuntu", value: "Ubuntu, sans-serif", category: "Sans-serif" },
+  { name: "Raleway", value: "Raleway, sans-serif", category: "Sans-serif" },
+  { name: "Work Sans", value: "Work Sans, sans-serif", category: "Sans-serif" },
+  { name: "Fira Sans", value: "Fira Sans, sans-serif", category: "Sans-serif" },
+  { name: "PT Sans", value: "PT Sans, sans-serif", category: "Sans-serif" },
+  { name: "Noto Sans", value: "Noto Sans, sans-serif", category: "Sans-serif" },
+  { name: "Droid Sans", value: "Droid Sans, sans-serif", category: "Sans-serif" },
+  { name: "Oxygen", value: "Oxygen, sans-serif", category: "Sans-serif" },
+  { name: "Arimo", value: "Arimo, sans-serif", category: "Sans-serif" },
+  { name: "Karla", value: "Karla, sans-serif", category: "Sans-serif" },
+  { name: "Mulish", value: "Mulish, sans-serif", category: "Sans-serif" },
+  { name: "DM Sans", value: "DM Sans, sans-serif", category: "Sans-serif" },
+  { name: "Quicksand", value: "Quicksand, sans-serif", category: "Sans-serif" },
+  { name: "Barlow", value: "Barlow, sans-serif", category: "Sans-serif" },
+  { name: "Public Sans", value: "Public Sans, sans-serif", category: "Sans-serif" },
+  { name: "Red Hat Display", value: "Red Hat Display, sans-serif", category: "Sans-serif" },
+  { name: "IBM Plex Sans", value: "IBM Plex Sans, sans-serif", category: "Sans-serif" },
+  { name: "Rubik", value: "Rubik, sans-serif", category: "Sans-serif" },
+  { name: "Manrope", value: "Manrope, sans-serif", category: "Sans-serif" },
+  { name: "Plus Jakarta Sans", value: "Plus Jakarta Sans, sans-serif", category: "Sans-serif" },
+  { name: "Outfit", value: "Outfit, sans-serif", category: "Sans-serif" },
+  { name: "Space Grotesk", value: "Space Grotesk, sans-serif", category: "Sans-serif" },
+  { name: "Figtree", value: "Figtree, sans-serif", category: "Sans-serif" },
   
-  // Serif fonts
-  { name: "Merriweather", value: "Merriweather, serif" },
-  { name: "Playfair Display", value: "Playfair Display, serif" },
-  { name: "Roboto Slab", value: "Roboto Slab, serif" },
-  { name: "PT Serif", value: "PT Serif, serif" },
-  { name: "Vollkorn", value: "Vollkorn, serif" },
-  { name: "Cormorant Garamond", value: "Cormorant Garamond, serif" },
-  { name: "Slabo 27px", value: "Slabo 27px, serif" },
-  { name: "Crimson Text", value: "Crimson Text, serif" },
-  { name: "Libre Baskerville", value: "Libre Baskerville, serif" },
-  { name: "Tinos", value: "Tinos, serif" },
+  // === SERIF FONTS ===
+  { name: "Merriweather", value: "Merriweather, serif", category: "Serif" },
+  { name: "Playfair Display", value: "Playfair Display, serif", category: "Serif" },
+  { name: "Roboto Slab", value: "Roboto Slab, serif", category: "Serif" },
+  { name: "PT Serif", value: "PT Serif, serif", category: "Serif" },
+  { name: "Vollkorn", value: "Vollkorn, serif", category: "Serif" },
+  { name: "Cormorant Garamond", value: "Cormorant Garamond, serif", category: "Serif" },
+  { name: "Slabo 27px", value: "Slabo 27px, serif", category: "Serif" },
+  { name: "Crimson Text", value: "Crimson Text, serif", category: "Serif" },
+  { name: "Libre Baskerville", value: "Libre Baskerville, serif", category: "Serif" },
+  { name: "Tinos", value: "Tinos, serif", category: "Serif" },
+  { name: "Source Serif Pro", value: "Source Serif Pro, serif", category: "Serif" },
+  { name: "IBM Plex Serif", value: "IBM Plex Serif, serif", category: "Serif" },
+  { name: "Lora", value: "Lora, serif", category: "Serif" },
+  { name: "Bitter", value: "Bitter, serif", category: "Serif" },
+  { name: "Alegreya", value: "Alegreya, serif", category: "Serif" },
+  { name: "Crimson Pro", value: "Crimson Pro, serif", category: "Serif" },
+  { name: "EB Garamond", value: "EB Garamond, serif", category: "Serif" },
+  { name: "Spectral", value: "Spectral, serif", category: "Serif" },
+  { name: "Zilla Slab", value: "Zilla Slab, serif", category: "Serif" },
+  { name: "Arvo", value: "Arvo, serif", category: "Serif" },
+  { name: "Old Standard TT", value: "Old Standard TT, serif", category: "Serif" },
+  { name: "Cardo", value: "Cardo, serif", category: "Serif" },
   
-  // Display fonts
-  { name: "Oswald", value: "Oswald, sans-serif" },
-  { name: "Abril Fatface", value: "Abril Fatface, serif" },
-  { name: "Bebas Neue", value: "Bebas Neue, sans-serif" },
-  { name: "Righteous", value: "Righteous, sans-serif" },
-  { name: "Bangers", value: "Bangers, sans-serif" },
-  { name: "Fredoka One", value: "Fredoka One, sans-serif" },
-  { name: "Orbitron", value: "Orbitron, sans-serif" },
+  // === DISPLAY FONTS ===
+  { name: "Oswald", value: "Oswald, sans-serif", category: "Display" },
+  { name: "Abril Fatface", value: "Abril Fatface, serif", category: "Display" },
+  { name: "Bebas Neue", value: "Bebas Neue, sans-serif", category: "Display" },
+  { name: "Righteous", value: "Righteous, sans-serif", category: "Display" },
+  { name: "Bangers", value: "Bangers, sans-serif", category: "Display" },
+  { name: "Fredoka One", value: "Fredoka One, sans-serif", category: "Display" },
+  { name: "Orbitron", value: "Orbitron, sans-serif", category: "Display" },
+  { name: "Anton", value: "Anton, sans-serif", category: "Display" },
+  { name: "Archivo Black", value: "Archivo Black, sans-serif", category: "Display" },
+  { name: "Alfa Slab One", value: "Alfa Slab One, serif", category: "Display" },
+  { name: "Bungee", value: "Bungee, cursive", category: "Display" },
+  { name: "Russo One", value: "Russo One, sans-serif", category: "Display" },
+  { name: "Passion One", value: "Passion One, cursive", category: "Display" },
+  { name: "Fjalla One", value: "Fjalla One, sans-serif", category: "Display" },
+  { name: "Squada One", value: "Squada One, cursive", category: "Display" },
+  { name: "Racing Sans One", value: "Racing Sans One, cursive", category: "Display" },
+  { name: "Black Ops One", value: "Black Ops One, cursive", category: "Display" },
+  { name: "Creepster", value: "Creepster, cursive", category: "Display" },
   
-  // Script fonts
-  { name: "Dancing Script", value: "Dancing Script, cursive" },
-  { name: "Pacifico", value: "Pacifico, cursive" },
-  { name: "Lobster", value: "Lobster, cursive" },
+  // === HANDWRITING & SCRIPT ===
+  { name: "Dancing Script", value: "Dancing Script, cursive", category: "Handwriting" },
+  { name: "Pacifico", value: "Pacifico, cursive", category: "Handwriting" },
+  { name: "Lobster", value: "Lobster, cursive", category: "Handwriting" },
+  { name: "Delius Unicase", value: "Delius Unicase, cursive", category: "Handwriting" },
+  { name: "Great Vibes", value: "Great Vibes, cursive", category: "Handwriting" },
+  { name: "Satisfy", value: "Satisfy, cursive", category: "Handwriting" },
+  { name: "Kaushan Script", value: "Kaushan Script, cursive", category: "Handwriting" },
+  { name: "Shadows Into Light", value: "Shadows Into Light, cursive", category: "Handwriting" },
+  { name: "Amatic SC", value: "Amatic SC, cursive", category: "Handwriting" },
+  { name: "Indie Flower", value: "Indie Flower, cursive", category: "Handwriting" },
+  { name: "Cookie", value: "Cookie, cursive", category: "Handwriting" },
+  { name: "Caveat", value: "Caveat, cursive", category: "Handwriting" },
+  { name: "Permanent Marker", value: "Permanent Marker, cursive", category: "Handwriting" },
   
-  // Fun fonts
-  { name: "Creepster", value: "Creepster, cursive" }
+  // === MONOSPACE ===
+  { name: "Roboto Mono", value: "Roboto Mono, monospace", category: "Monospace" },
+  { name: "Source Code Pro", value: "Source Code Pro, monospace", category: "Monospace" },
+  { name: "Fira Code", value: "Fira Code, monospace", category: "Monospace" },
+  { name: "JetBrains Mono", value: "JetBrains Mono, monospace", category: "Monospace" },
+  { name: "IBM Plex Mono", value: "IBM Plex Mono, monospace", category: "Monospace" },
+  { name: "Ubuntu Mono", value: "Ubuntu Mono, monospace", category: "Monospace" },
+  { name: "Inconsolata", value: "Inconsolata, monospace", category: "Monospace" },
+  { name: "Space Mono", value: "Space Mono, monospace", category: "Monospace" },
+  { name: "Courier Prime", value: "Courier Prime, monospace", category: "Monospace" }
 ];
 
 // --- Default Palette (e‑ink friendly)
@@ -220,17 +275,160 @@ export default function CalendarCustomizerApp() {
   const [weekdayFontSize, setWeekdayFontSize] = useState(30);
   const [eventFontSize, setEventFontSize] = useState(48);
   const [backgroundColor, setBackgroundColor] = useState("#3f50a6");
-  const [monthFontFamily, setMonthFontFamily] = useState("Montserrat, sans-serif");
-  const [eventFontFamily, setEventFontFamily] = useState("Montserrat, sans-serif");
+  const [monthFontFamily, setMonthFontFamily] = useState("Delius Unicase, cursive");
+  const [eventFontFamily, setEventFontFamily] = useState("Delius Unicase, cursive");
   const [monthBold, setMonthBold] = useState(true);
   const [eventBold, setEventBold] = useState(true);
   const [palette] = useState<Palette>(DEFAULT_PALETTE);
+  
+  // Font management states
+  const [customFonts, setCustomFonts] = useState<Array<{name: string, value: string, category: string}>>([]);
+  const [fontSearchTerm, setFontSearchTerm] = useState("");
+  const [selectedFontCategory, setSelectedFontCategory] = useState("All");
+  const [customFontInput, setCustomFontInput] = useState("");
+  const [showAddFontForm, setShowAddFontForm] = useState(false);
   
   // CalDAV integration
   const [useCalDAV, setUseCalDAV] = useState(true);
   const [calDAVEvents, setCalDAVEvents] = useState<CalendarEvent[]>([]);
   const [isLoadingEvents, setIsLoadingEvents] = useState(false);
   const [calDAVError, setCalDAVError] = useState<string | null>(null);
+
+  // Combine built-in and custom fonts
+  const allFonts = useMemo(() => {
+    return [...GOOGLE_FONTS, ...customFonts];
+  }, [customFonts]);
+
+  // Filter fonts based on search term and category
+  const filteredFonts = useMemo(() => {
+    return allFonts.filter(font => {
+      const matchesSearch = font.name.toLowerCase().includes(fontSearchTerm.toLowerCase());
+      const matchesCategory = selectedFontCategory === "All" || font.category === selectedFontCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [allFonts, fontSearchTerm, selectedFontCategory]);
+
+  // Get unique categories for filter dropdown
+  const fontCategories = useMemo(() => {
+    const categories = Array.from(new Set(allFonts.map(font => font.category)));
+    return ["All", ...categories.sort()];
+  }, [allFonts]);
+
+  // Function to parse Google Fonts URL and extract font information
+  const parseGoogleFontsUrl = (url: string) => {
+    try {
+      const urlObj = new URL(url);
+      if (!urlObj.hostname.includes('fonts.googleapis.com')) {
+        throw new Error('Not a valid Google Fonts URL');
+      }
+      
+      const familyParam = urlObj.searchParams.get('family');
+      if (!familyParam) {
+        throw new Error('No family parameter found in URL');
+      }
+
+      // Parse font families from the family parameter
+      const fonts: Array<{name: string, value: string, category: string}> = [];
+      const families = familyParam.split('|');
+
+      families.forEach(family => {
+        // Remove weights and styles (everything after ':')
+        const fontName = family.split(':')[0].replace(/\+/g, ' ');
+        
+        // Determine category based on font name (basic heuristic)
+        let category = "Sans-serif"; // default
+        const nameUpper = fontName.toUpperCase();
+        
+        if (nameUpper.includes('MONO') || nameUpper.includes('CODE')) {
+          category = "Monospace";
+        } else if (nameUpper.includes('SERIF') || 
+                   ['MERRIWEATHER', 'PLAYFAIR', 'LORA', 'CRIMSON', 'BASKERVILLE'].some(serif => nameUpper.includes(serif))) {
+          category = "Serif";
+        } else if (['SCRIPT', 'DANCING', 'PACIFICO', 'LOBSTER', 'CAVEAT', 'SATISFY'].some(script => nameUpper.includes(script))) {
+          category = "Handwriting";
+        } else if (['OSWALD', 'BEBAS', 'ANTON', 'ABRIL', 'RIGHTEOUS', 'BANGERS'].some(display => nameUpper.includes(display))) {
+          category = "Display";
+        }
+
+        fonts.push({
+          name: fontName,
+          value: `${fontName}, ${category === "Serif" ? "serif" : category === "Monospace" ? "monospace" : category === "Handwriting" ? "cursive" : "sans-serif"}`,
+          category: category
+        });
+      });
+
+      return fonts;
+    } catch (error) {
+      throw new Error(`Failed to parse Google Fonts URL: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
+  // Function to dynamically load Google Font
+  const loadGoogleFont = (fontName: string) => {
+    const linkId = `google-font-${fontName.replace(/\s+/g, '-').toLowerCase()}`;
+    
+    // Check if font is already loaded
+    if (document.getElementById(linkId)) {
+      return;
+    }
+
+    // Create link element for Google Font
+    const link = document.createElement('link');
+    link.id = linkId;
+    link.rel = 'stylesheet';
+    link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontName)}:wght@400;500;600;700&display=swap`;
+    
+    document.head.appendChild(link);
+  };
+
+  // Handle adding custom fonts from URL
+  const handleAddCustomFont = () => {
+    if (!customFontInput.trim()) return;
+
+    try {
+      let fontsToAdd: Array<{name: string, value: string, category: string}> = [];
+
+      if (customFontInput.startsWith('http')) {
+        // Parse Google Fonts URL
+        fontsToAdd = parseGoogleFontsUrl(customFontInput);
+        
+        // Load the fonts
+        fontsToAdd.forEach(font => {
+          loadGoogleFont(font.name);
+        });
+      } else {
+        // Treat as individual font name
+        const fontName = customFontInput.trim();
+        fontsToAdd = [{
+          name: fontName,
+          value: `${fontName}, sans-serif`,
+          category: "Custom"
+        }];
+        
+        // Load the font
+        loadGoogleFont(fontName);
+      }
+
+      // Filter out fonts that already exist
+      const existingFontNames = allFonts.map(f => f.name.toLowerCase());
+      const newFonts = fontsToAdd.filter(font => 
+        !existingFontNames.includes(font.name.toLowerCase())
+      );
+
+      if (newFonts.length > 0) {
+        setCustomFonts(prev => [...prev, ...newFonts]);
+        setCustomFontInput("");
+        setShowAddFontForm(false);
+        
+        // Show success message (you can replace this with a toast)
+        alert(`Successfully added ${newFonts.length} font(s): ${newFonts.map(f => f.name).join(', ')}`);
+      } else {
+        alert("No new fonts found or all fonts already exist");
+      }
+    } catch (error) {
+      alert(`Error adding font: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
 
   // Function to fetch CalDAV events
   const fetchCalDAVEvents = async () => {
@@ -434,32 +632,107 @@ export default function CalendarCustomizerApp() {
               </div>
 
               <Label>Month title font</Label>
-              <div className="px-2">
+              <div className="px-2 space-y-2">
+                {/* Font search and filter */}
+                <div className="flex gap-2">
+                  <Input 
+                    placeholder="Search fonts..." 
+                    value={fontSearchTerm}
+                    onChange={(e) => setFontSearchTerm(e.target.value)}
+                    className="flex-1 text-xs"
+                  />
+                  <select 
+                    value={selectedFontCategory} 
+                    onChange={(e) => setSelectedFontCategory(e.target.value)}
+                    className="px-2 py-1 text-xs border rounded"
+                  >
+                    {fontCategories.map(category => (
+                      <option key={category} value={category}>{category}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                {/* Font selector */}
                 <select 
                   value={monthFontFamily} 
-                  onChange={(e) => setMonthFontFamily(e.target.value)}
-                  className="w-full p-2 text-sm border rounded"
+                  onChange={(e) => {
+                    setMonthFontFamily(e.target.value);
+                    // Extract font name and load it dynamically
+                    const fontName = e.target.value.split(',')[0];
+                    loadGoogleFont(fontName);
+                  }}
+                  className="w-full p-2 text-sm border rounded max-h-32 overflow-y-auto"
                   style={{ fontFamily: monthFontFamily }}
+                  size={Math.min(filteredFonts.length, 6)}
                 >
-                  {GOOGLE_FONTS.map(font => (
+                  {filteredFonts.map(font => (
                     <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
-                      {font.name}
+                      {font.name} ({font.category})
                     </option>
                   ))}
                 </select>
+                
+                {/* Add custom font button */}
+                <button 
+                  onClick={() => setShowAddFontForm(!showAddFontForm)}
+                  className="w-full py-1 text-xs text-blue-600 border border-blue-300 rounded hover:bg-blue-50"
+                >
+                  {showAddFontForm ? '× Cancel' : '+ Add Custom Font'}
+                </button>
+                
+                {/* Custom font form */}
+                {showAddFontForm && (
+                  <div className="p-2 bg-gray-50 rounded space-y-2">
+                    <Input 
+                      placeholder="Paste Google Fonts URL or font name..."
+                      value={customFontInput}
+                      onChange={(e) => setCustomFontInput(e.target.value)}
+                      className="text-xs"
+                    />
+                    <div className="text-xs text-gray-600">
+                      Examples:
+                      <br />• https://fonts.googleapis.com/css2?family=Roboto
+                      <br />• Roboto
+                    </div>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={handleAddCustomFont}
+                        className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                        disabled={!customFontInput.trim()}
+                      >
+                        Add Font
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setShowAddFontForm(false);
+                          setCustomFontInput("");
+                        }}
+                        className="px-3 py-1 text-xs bg-gray-300 rounded hover:bg-gray-400"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <Label>Event text font</Label>
               <div className="px-2">
                 <select 
                   value={eventFontFamily} 
-                  onChange={(e) => setEventFontFamily(e.target.value)}
-                  className="w-full p-2 text-sm border rounded"
+                  onChange={(e) => {
+                    setEventFontFamily(e.target.value);
+                    // Extract font name and load it dynamically
+                    const fontName = e.target.value.split(',')[0];
+                    loadGoogleFont(fontName);
+                  }}
+                  className="w-full p-2 text-sm border rounded max-h-32 overflow-y-auto"
                   style={{ fontFamily: eventFontFamily }}
+                  size={Math.min(filteredFonts.length, 6)}
                 >
-                  {GOOGLE_FONTS.map(font => (
+                  {filteredFonts.map(font => (
                     <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
-                      {font.name}
+                      {font.name} ({font.category})
                     </option>
                   ))}
                 </select>
@@ -579,6 +852,29 @@ export default function CalendarCustomizerApp() {
             )}
           </CardContent>
         </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Font Features</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm text-muted-foreground space-y-2">
+            <p>• <strong>{allFonts.length} fonts available</strong> (built-in + custom)</p>
+            <p>• Search by name or filter by category</p>
+            <p>• Add Google Fonts by URL or name</p>
+            <p>• Fonts load dynamically when selected</p>
+            {customFonts.length > 0 && (
+              <div>
+                <p>• <strong>{customFonts.length} custom fonts</strong> added</p>
+                <button 
+                  onClick={() => setCustomFonts([])}
+                  className="mt-2 px-3 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
+                >
+                  Clear All Custom Fonts
+                </button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Notes</CardTitle>
