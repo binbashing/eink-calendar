@@ -274,7 +274,7 @@ export default function CalendarCustomizerApp() {
   const [monthFontSize, setMonthFontSize] = useState(70);
   const [weekdayFontSize, setWeekdayFontSize] = useState(30);
   const [eventFontSize, setEventFontSize] = useState(48);
-  const [backgroundColor, setBackgroundColor] = useState("#3f50a6");
+  const [backgroundColor, setBackgroundColor] = useState("#e6803d");
   const [monthFontFamily, setMonthFontFamily] = useState("Delius Unicase, cursive");
   const [eventFontFamily, setEventFontFamily] = useState("Delius Unicase, cursive");
   const [monthBold, setMonthBold] = useState(true);
@@ -1052,7 +1052,7 @@ export default function CalendarCustomizerApp() {
                           width: '40px',
                           height: '40px',
                           borderRadius: '50%',
-                          backgroundColor: isToday ? '#2563EB' : 'transparent', // Blue circle for today
+                          backgroundColor: isToday ? backgroundColor : 'transparent', // Use selected background color for today
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center'
