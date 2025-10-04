@@ -274,7 +274,7 @@ export default function CalendarCustomizerApp() {
   const [monthFontSize, setMonthFontSize] = useState(70);
   const [weekdayFontSize, setWeekdayFontSize] = useState(30);
   const [eventFontSize, setEventFontSize] = useState(48);
-  const [backgroundColor, setBackgroundColor] = useState("#e6803d");
+  const [backgroundColor, setBackgroundColor] = useState("#fd8e44");
   const [monthFontFamily, setMonthFontFamily] = useState("Delius Unicase, cursive");
   const [eventFontFamily, setEventFontFamily] = useState("Delius Unicase, cursive");
   const [monthBold, setMonthBold] = useState(true);
