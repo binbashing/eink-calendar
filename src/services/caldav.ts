@@ -6,7 +6,6 @@ export interface CalendarEvent {
   start: Date;
   end?: Date;
   allDay?: boolean;
-  category: string;
 }
 
 export class CalDAVService {
@@ -127,7 +126,6 @@ export class CalDAVService {
             start: currentEvent.start,
             end: currentEvent.end,
             allDay: currentEvent.allDay || false,
-            category: this.categorizeEvent(currentEvent.title),
           });
         }
         inEvent = false;
@@ -174,24 +172,6 @@ export class CalDAVService {
       } else {
         return new Date(year, month, day, hour, minute, second);
       }
-    }
-  }
-
-  private categorizeEvent(title: string): string {
-    const titleLower = title.toLowerCase();
-    
-    if (titleLower.includes('meeting') || titleLower.includes('call') || titleLower.includes('standup')) {
-      return 'work';
-    } else if (titleLower.includes('birthday') || titleLower.includes('anniversary')) {
-      return 'personal';
-    } else if (titleLower.includes('doctor') || titleLower.includes('appointment') || titleLower.includes('dentist')) {
-      return 'health';
-    } else if (titleLower.includes('travel') || titleLower.includes('flight') || titleLower.includes('vacation')) {
-      return 'travel';
-    } else if (titleLower.includes('dinner') || titleLower.includes('lunch') || titleLower.includes('coffee')) {
-      return 'social';
-    } else {
-      return 'other';
     }
   }
 

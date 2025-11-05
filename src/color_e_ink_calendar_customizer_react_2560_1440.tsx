@@ -3,8 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Download, Settings2, Calendar, Wifi } from "lucide-react";
 // NOTE: For PNG export, ensure html-to-image is available in your environment
@@ -19,6 +17,9 @@ import { CalDAVService, CalendarEvent, calDAVService } from "./services/caldav";
  * - Color‑aware accents, bold readable type
  */
 
+// --- Configuration Constants
+const DEFAULT_BACKGROUND_COLOR = "#9e682a";
+
 // --- Utilities
 const pad2 = (n: number) => String(n).padStart(2, "0");
 
@@ -29,7 +30,6 @@ type EventItem = {
   end?: Date;
   allDay?: boolean;
   location?: string;
-  category: keyof Palette["categories"]; // work | personal | health | social | family | school | sports | reminder
 };
 
 // Generate a simple month matrix (5 weeks view - 35 days)
@@ -176,41 +176,6 @@ const GOOGLE_FONTS = [
   { name: "Courier Prime", value: "Courier Prime, monospace", category: "Monospace" }
 ];
 
-// --- Default Palette (e‑ink friendly)
-export type Palette = {
-  paper: string;
-  ink: string;
-  deEmphasis: string;
-  rule: string;
-  categories: {
-    work: string;      // blue
-    personal: string;  // purple
-    health: string;    // green
-    social: string;    // orange
-    family: string;    // red (keeping for compatibility)
-    school: string;    // teal (keeping for compatibility)
-    sports: string;    // cyan (keeping for compatibility)
-    reminder: string;  // amber (keeping for compatibility)
-  };
-};
-
-const DEFAULT_PALETTE: Palette = {
-  paper: "#000000",  // Pure black background
-  ink: "#ffffff",    // White text
-  deEmphasis: "#888888", // Gray for less important text  
-  rule: "#444444",   // Dark gray for borders
-  categories: {
-    work: "#1A73E8",      // Gmail blue
-    personal: "#9334E4",  // Purple
-    health: "#137333",    // Gmail green
-    social: "#EA4335",    // Gmail red
-    family: "#FF6D01",    // Orange
-    school: "#1A73E8",    // Gmail blue
-    sports: "#0D652D",    // Dark green
-    reminder: "#F9AB00",  // Gmail yellow
-  },
-};
-
 // Mock events (empty - CalDAV is the primary data source)
 
 // Format time for e‑ink readability
@@ -274,12 +239,11 @@ export default function CalendarCustomizerApp() {
   const [monthFontSize, setMonthFontSize] = useState(70);
   const [weekdayFontSize, setWeekdayFontSize] = useState(30);
   const [eventFontSize, setEventFontSize] = useState(48);
-  const [backgroundColor, setBackgroundColor] = useState("#fd8e44");
+  const [backgroundColor, setBackgroundColor] = useState(DEFAULT_BACKGROUND_COLOR);
   const [monthFontFamily, setMonthFontFamily] = useState("Delius Unicase, cursive");
   const [eventFontFamily, setEventFontFamily] = useState("Delius Unicase, cursive");
   const [monthBold, setMonthBold] = useState(true);
   const [eventBold, setEventBold] = useState(true);
-  const [palette] = useState<Palette>(DEFAULT_PALETTE);
   
   // Font management states
   const [customFonts, setCustomFonts] = useState<Array<{name: string, value: string, category: string}>>([]);
@@ -459,34 +423,20 @@ export default function CalendarCustomizerApp() {
   }, [useCalDAV]);
 
   // Convert CalDAV events to the format expected by the calendar
-  // Allowed categories for EventItem
-  const allowedCategories: (keyof Palette["categories"])[] = [
-    "work", "personal", "health", "social", "family", "school", "sports", "reminder"
-  ];
-
-  // Convert CalDAV events to the format expected by the calendar
   const convertCalDAVEvents = (events: CalendarEvent[]) => {
     return events.map(event => {
-      // Validate and map category
-      let category: keyof Palette["categories"] = "work";
-      if (typeof event.category === "string" && allowedCategories.includes(event.category as keyof Palette["categories"])) {
-        category = event.category as keyof Palette["categories"];
-      }
       return {
         id: event.id,
         title: event.title,
         start: event.start,
         end: event.end,
-        category,
         allDay: event.allDay || false,
       };
     });
   };
 
-  // Use CalDAV events if enabled, otherwise use sample events
-  // Use CalDAV events if enabled, otherwise use sample events
+  // Use CalDAV events for the calendar
   const events = convertCalDAVEvents(calDAVEvents);
-  // ...existing code...
 
   const renderRef = useRef<HTMLDivElement>(null);
 
@@ -576,7 +526,7 @@ export default function CalendarCustomizerApp() {
         {`
           .gmail-theme .month-title,
           .gmail-theme .weekday-header {
-            color: ${palette.ink} !important;
+            color: #ffffff !important;
           }
           .gmail-theme .day-cell * {
             color: #000000 !important;
@@ -899,7 +849,7 @@ export default function CalendarCustomizerApp() {
             width: CANVAS_W, 
             height: CANVAS_H, 
             background: backgroundColor, 
-            color: palette.ink + ' !important'
+            color: '#ffffff !important'
           }}
           className="relative shadow ring-1 ring-neutral-200 mx-auto gmail-theme"
         >
@@ -935,7 +885,7 @@ export default function CalendarCustomizerApp() {
                   className="text-center font-bold flex items-center justify-center weekday-header" 
                   style={{ 
                     fontSize: Math.min(weekdayFontSize, cellW / 8),
-                    color: palette.ink + ' !important',
+                    color: '#ffffff !important',
                     width: `${cellW}px`
                   }}
                 >
@@ -1136,7 +1086,7 @@ export default function CalendarCustomizerApp() {
                           className="text-center font-medium"
                           style={{ 
                             fontSize: Math.min(eventFontSize - 4, cellW / 16),
-                            color: isToday ? '#666666' : palette.deEmphasis 
+                            color: isToday ? '#666666' : '#888888' 
                           }}
                         >
                           +{allEvents.length - 4}
