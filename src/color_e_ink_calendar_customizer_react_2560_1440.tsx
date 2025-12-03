@@ -18,7 +18,7 @@ import { CalDAVService, CalendarEvent, calDAVService } from "./services/caldav";
  */
 
 // --- Configuration Constants
-const DEFAULT_BACKGROUND_COLOR = "#9e682a";
+const DEFAULT_BACKGROUND_COLOR = "#65A047";
 
 // --- Utilities
 const pad2 = (n: number) => String(n).padStart(2, "0");
