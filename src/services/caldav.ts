@@ -1,4 +1,5 @@
 import { createDAVClient } from 'tsdav';
+import { RRule, RRuleSet, rrulestr } from 'rrule';
 
 export interface CalendarEvent {
   id: string;
@@ -6,6 +7,8 @@ export interface CalendarEvent {
   start: Date;
   end?: Date;
   allDay?: boolean;
+  sequence?: number;
+  recurrenceId?: Date; // Original date this event was moved from
 }
 
 export class CalDAVService {
@@ -117,14 +120,85 @@ export class CalDAVService {
     if (events.length > 0) {
       console.log(`Sample events: ${events.slice(0, 5).map(e => `${e.title} (${e.start})`).join(', ')}`);
     }
-    return events;
+    
+    // Deduplicate events (handles cases where CalDAV server doesn't properly add EXDATE for modified occurrences)
+    const deduped = this.deduplicateEvents(events);
+    if (deduped.length !== events.length) {
+      console.log(`Deduplicated ${events.length - deduped.length} duplicate events`);
+    }
+    
+    return deduped;
+  }
+
+  private deduplicateEvents(events: CalendarEvent[]): CalendarEvent[] {
+    // First, collect all recurrenceIds to know which dates to exclude from recurring events
+    const modifiedOccurrences = new Set<string>();
+    events.forEach(event => {
+      if (event.recurrenceId) {
+        // Create key from title + recurrenceId date
+        const dateKey = event.allDay
+          ? event.recurrenceId.toDateString()
+          : event.recurrenceId.toISOString().split('T')[0];
+        modifiedOccurrences.add(`${event.title}__${dateKey}`);
+      }
+    });
+    
+    // Filter out recurring occurrences that have been modified
+    const filtered = events.filter(event => {
+      // Keep all non-recurring events and events with recurrenceId (exceptions)
+      if (event.sequence !== 0 || event.recurrenceId) {
+        return true;
+      }
+      
+      // For expanded recurring events (sequence 0), check if this occurrence was modified
+      const dateKey = event.allDay
+        ? event.start.toDateString()
+        : event.start.toISOString().split('T')[0];
+      const key = `${event.title}__${dateKey}`;
+      
+      if (modifiedOccurrences.has(key)) {
+        console.debug(`Dedup: Filtered recurring occurrence of "${event.title}" on ${dateKey} (replaced by exception)`);
+        return false; // Exclude this recurring occurrence
+      }
+      
+      return true;
+    });
+    
+    // Now deduplicate same-day events by sequence
+    const eventMap = new Map<string, CalendarEvent>();
+    
+    for (const event of filtered) {
+      const dateKey = event.allDay 
+        ? event.start.toDateString()
+        : event.start.toISOString().split('T')[0];
+      const key = `${event.title}__${dateKey}`;
+      
+      const existing = eventMap.get(key);
+      if (!existing) {
+        eventMap.set(key, event);
+      } else {
+        const existingSeq = existing.sequence || 0;
+        const newSeq = event.sequence || 0;
+        
+        if (newSeq > existingSeq) {
+          eventMap.set(key, event);
+          console.debug(`Dedup: Replaced "${event.title}" on ${dateKey} (seq ${existingSeq} → ${newSeq})`);
+        } else if (newSeq === existingSeq && event.start.getTime() !== existing.start.getTime()) {
+          // Same sequence but different times - these are legitimately different events, keep both
+          const timeKey = `${event.title}__${event.start.toISOString()}`;
+          eventMap.set(timeKey, event);
+        }
+      }
+    }
+    
+    return Array.from(eventMap.values());
   }
 
   private parseICalData(icalData: string): CalendarEvent[] {
     const events: CalendarEvent[] = [];
     const lines = icalData.split('\n');
     
-    let currentEvent: Partial<CalendarEvent> & { rrule?: string; recurrenceId?: string } = {};
+    let currentEvent: Partial<CalendarEvent> & { rrule?: string; recurrenceId?: string; status?: string; exdates?: Date[] } = {};
     let inEvent = false;
 
     for (let line of lines) {
@@ -132,8 +206,15 @@ export class CalDAVService {
 
       if (line === 'BEGIN:VEVENT') {
         inEvent = true;
-        currentEvent = {};
+        currentEvent = { exdates: [] };
       } else if (line === 'END:VEVENT' && inEvent) {
+        // Skip cancelled events
+        if (currentEvent.status === 'CANCELLED') {
+          console.debug(`Skipped cancelled event: ${currentEvent.title}`);
+          inEvent = false;
+          continue;
+        }
+        
         if (currentEvent.title && currentEvent.start) {
           // If this event has RECURRENCE-ID, it's an exception - treat as standalone
           if (currentEvent.recurrenceId) {
@@ -143,12 +224,16 @@ export class CalDAVService {
               start: currentEvent.start,
               end: currentEvent.end,
               allDay: currentEvent.allDay || false,
+              sequence: currentEvent.sequence,
+              recurrenceId: currentEvent.recurrenceId, // Store the original date
             });
           }
           // If this event has an RRULE (and no RECURRENCE-ID), expand it
           else if (currentEvent.rrule) {
             try {
-              const expandedEvents = this.expandRecurringEvent(currentEvent as CalendarEvent & { rrule: string });
+              const expandedEvents = this.expandRecurringEvent(
+                currentEvent as CalendarEvent & { rrule: string; exdates?: Date[] }
+              );
               events.push(...expandedEvents);
             } catch (error) {
               console.warn(`Failed to expand RRULE for "${currentEvent.title}":`, error);
@@ -159,6 +244,7 @@ export class CalDAVService {
                 start: currentEvent.start,
                 end: currentEvent.end,
                 allDay: currentEvent.allDay || false,
+                sequence: currentEvent.sequence,
               });
             }
           } else {
@@ -168,6 +254,7 @@ export class CalDAVService {
               start: currentEvent.start,
               end: currentEvent.end,
               allDay: currentEvent.allDay || false,
+              sequence: currentEvent.sequence,
             });
           }
         } else {
@@ -200,8 +287,30 @@ export class CalDAVService {
           currentEvent.rrule = value;
           console.debug(`Event has RRULE: ${value} (title: ${currentEvent.title})`);
         } else if (key.startsWith('RECURRENCE-ID')) {
-          currentEvent.recurrenceId = value;
-          console.debug(`Event has RECURRENCE-ID: ${value} (title: ${currentEvent.title})`);
+          // Parse the date value from RECURRENCE-ID
+          const colonPos = key.indexOf(':');
+          const dateValue = colonPos > 0 ? value : value;
+          try {
+            currentEvent.recurrenceId = this.parseDateTime(dateValue, !dateValue.includes('T'));
+            console.debug(`Event has RECURRENCE-ID: ${dateValue} -> ${currentEvent.recurrenceId} (title: ${currentEvent.title})`);
+          } catch (error) {
+            console.warn(`Failed to parse RECURRENCE-ID: ${value}`);
+          }
+        } else if (key === 'STATUS') {
+          currentEvent.status = value;
+        } else if (key === 'SEQUENCE') {
+          currentEvent.sequence = parseInt(value) || 0;
+        } else if (key.startsWith('EXDATE')) {
+          // EXDATE can have timezone info: EXDATE;TZID=America/New_York:20251126T200000
+          // For simplicity, parse the date value and add to exdates array
+          const dateValue = value;
+          try {
+            const exdate = this.parseDateTime(dateValue, !dateValue.includes('T'));
+            if (!currentEvent.exdates) currentEvent.exdates = [];
+            currentEvent.exdates.push(exdate);
+          } catch (error) {
+            console.warn(`Failed to parse EXDATE: ${value}`);
+          }
         }
       }
     }
@@ -209,161 +318,55 @@ export class CalDAVService {
     return events;
   }
 
-  private expandRecurringEvent(event: CalendarEvent & { rrule: string }): CalendarEvent[] {
-    const expanded: CalendarEvent[] = [];
-    
+  private expandRecurringEvent(event: CalendarEvent & { rrule: string; exdates?: Date[] }): CalendarEvent[] {
     try {
       if (!this.requestedStartDate || !this.requestedEndDate) {
         return [event];
       }
       
-      const rrule = event.rrule;
+      const rruleString = event.rrule;
       const dtstart = event.start;
+      const exdates = event.exdates || [];
       
-      console.log(`Expanding RRULE for "${event.title}": ${rrule}`);
-      console.log(`  Original date: ${dtstart.toISOString()}`);
-      console.log(`  Requested range: ${this.requestedStartDate.toISOString()} to ${this.requestedEndDate.toISOString()}`);
+      // Parse RRULE using standard library
+      const rruleSet = new RRuleSet();
       
-      // Handle FREQ=YEARLY
-      if (rrule.includes('FREQ=YEARLY')) {
-        const startYear = this.requestedStartDate.getFullYear();
-        const endYear = this.requestedEndDate.getFullYear();
-        
-        for (let year = startYear; year <= endYear; year++) {
-          const occurrence = new Date(year, dtstart.getMonth(), dtstart.getDate());
-          
-          if (occurrence >= this.requestedStartDate && occurrence <= this.requestedEndDate) {
-            const duration = event.end ? event.end.getTime() - event.start.getTime() : 0;
-            expanded.push({
-              id: event.id + '_' + year,
-              title: event.title,
-              start: event.allDay ? occurrence : new Date(year, dtstart.getMonth(), dtstart.getDate(), dtstart.getHours(), dtstart.getMinutes(), dtstart.getSeconds()),
-              end: duration > 0 ? new Date((event.allDay ? occurrence : new Date(year, dtstart.getMonth(), dtstart.getDate(), dtstart.getHours(), dtstart.getMinutes(), dtstart.getSeconds())).getTime() + duration) : (event.allDay ? occurrence : new Date(year, dtstart.getMonth(), dtstart.getDate(), dtstart.getHours(), dtstart.getMinutes(), dtstart.getSeconds())),
-              allDay: event.allDay,
-            });
-          }
-        }
-      }
-      // Handle FREQ=MONTHLY
-      else if (rrule.includes('FREQ=MONTHLY')) {
-        // Parse INTERVAL if present (default is 1)
-        const intervalMatch = rrule.match(/INTERVAL=(\d+)/);
-        const interval = intervalMatch ? parseInt(intervalMatch[1]) : 1;
-        
-        // Start from the original event date and add occurrences
-        let currentDate = new Date(dtstart);
-        const maxIterations = 100; // Safety limit
-        let iterations = 0;
-        
-        while (currentDate <= this.requestedEndDate && iterations < maxIterations) {
-          if (currentDate >= this.requestedStartDate) {
-            const duration = event.end ? event.end.getTime() - event.start.getTime() : 0;
-            expanded.push({
-              id: event.id + '_' + currentDate.getTime(),
-              title: event.title,
-              start: new Date(currentDate),
-              end: duration > 0 ? new Date(currentDate.getTime() + duration) : new Date(currentDate),
-              allDay: event.allDay,
-            });
-          }
-          
-          // Add interval months
-          currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + interval, currentDate.getDate());
-          iterations++;
-        }
-      }
-      // Handle FREQ=WEEKLY
-      else if (rrule.includes('FREQ=WEEKLY')) {
-        const intervalMatch = rrule.match(/INTERVAL=(\d+)/);
-        const interval = intervalMatch ? parseInt(intervalMatch[1]) : 1;
-        
-        // Parse BYDAY if present (e.g., BYDAY=SU,MO)
-        const bydayMatch = rrule.match(/BYDAY=([A-Z,]+)/);
-        const byday = bydayMatch ? bydayMatch[1].split(',') : [];
-        
-        console.log(`  WEEKLY: interval=${interval}, byday=${byday.join(',')}`);
-        
-        let currentDate = new Date(dtstart);
-        const maxIterations = 100;
-        let iterations = 0;
-        
-        while (currentDate <= this.requestedEndDate && iterations < maxIterations) {
-          // Check if this date matches the BYDAY constraint (if specified)
-          let matchesByday = byday.length === 0; // If no BYDAY, match all days
-          if (byday.length > 0) {
-            // For all-day events, use UTC day to avoid DST issues
-            const dayIndex = event.allDay ? currentDate.getUTCDay() : currentDate.getDay();
-            const dayOfWeek = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'][dayIndex];
-            matchesByday = byday.includes(dayOfWeek);
-          }
-          
-          if (iterations < 15) {
-            const dayIndex = event.allDay ? currentDate.getUTCDay() : currentDate.getDay();
-            console.log(`  Iteration ${iterations}: ${currentDate.toISOString()}, day=${['SU','MO','TU','WE','TH','FR','SA'][dayIndex]}, matchesByday=${matchesByday}, inRange=${currentDate >= this.requestedStartDate && currentDate <= this.requestedEndDate}`);
-          }
-          
-          if (matchesByday && currentDate >= this.requestedStartDate) {
-            const duration = event.end ? event.end.getTime() - event.start.getTime() : 0;
-            // For all-day events, create date at local midnight to avoid timezone display issues
-            let occurrenceDate;
-            if (event.allDay) {
-              occurrenceDate = new Date(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate());
-            } else {
-              occurrenceDate = new Date(currentDate);
-            }
-            
-            expanded.push({
-              id: event.id + '_' + currentDate.getTime(),
-              title: event.title,
-              start: occurrenceDate,
-              end: duration > 0 ? new Date(occurrenceDate.getTime() + duration) : occurrenceDate,
-              allDay: event.allDay,
-            });
-          }
-          
-          // Add interval weeks (7 days per week)
-          currentDate = new Date(currentDate.getTime() + (interval * 7 * 24 * 60 * 60 * 1000));
-          iterations++;
-        }
-        
-        console.log(`  WEEKLY loop completed: ${iterations} iterations`);
-      }
-      // Handle FREQ=DAILY
-      else if (rrule.includes('FREQ=DAILY')) {
-        const intervalMatch = rrule.match(/INTERVAL=(\d+)/);
-        const interval = intervalMatch ? parseInt(intervalMatch[1]) : 1;
-        
-        let currentDate = new Date(dtstart);
-        const maxIterations = 365; // Max 1 year of daily events
-        let iterations = 0;
-        
-        while (currentDate <= this.requestedEndDate && iterations < maxIterations) {
-          if (currentDate >= this.requestedStartDate) {
-            const duration = event.end ? event.end.getTime() - event.start.getTime() : 0;
-            expanded.push({
-              id: event.id + '_' + currentDate.getTime(),
-              title: event.title,
-              start: new Date(currentDate),
-              end: duration > 0 ? new Date(currentDate.getTime() + duration) : new Date(currentDate),
-              allDay: event.allDay,
-            });
-          }
-          
-          currentDate = new Date(currentDate.getTime() + (interval * 24 * 60 * 60 * 1000));
-          iterations++;
-        }
-      }
-      else {
-        // Unknown RRULE format, return original
-        console.log(`  Unknown RRULE format for "${event.title}"`);
-        return [event];
+      // Add the RRULE with DTSTART
+      const rule = rrulestr(rruleString, { dtstart });
+      rruleSet.rrule(rule);
+      
+      // Add EXDATE exclusions
+      for (const exdate of exdates) {
+        rruleSet.exdate(exdate);
       }
       
-      console.log(`  Expanded to ${expanded.length} occurrences`);
-      if (expanded.length > 0) {
-        console.log(`  First occurrence: ${expanded[0].start.toISOString()}`);
-        console.log(`  Last occurrence: ${expanded[expanded.length - 1].start.toISOString()}`);
-      }
+      // Get all occurrences within the requested date range
+      const occurrences = rruleSet.between(
+        this.requestedStartDate,
+        this.requestedEndDate,
+        true // inclusive
+      );
+      
+      // Convert occurrences to CalendarEvent objects
+      const duration = event.end ? event.end.getTime() - event.start.getTime() : 0;
+      const expanded: CalendarEvent[] = occurrences.map((occurrence, index) => {
+        // For all-day events, create date at local midnight to avoid timezone display issues
+        let occurrenceDate;
+        if (event.allDay) {
+          occurrenceDate = new Date(occurrence.getUTCFullYear(), occurrence.getUTCMonth(), occurrence.getUTCDate());
+        } else {
+          occurrenceDate = occurrence;
+        }
+        
+        return {
+          id: event.id + '_' + occurrence.getTime(),
+          title: event.title,
+          start: occurrenceDate,
+          end: duration > 0 ? new Date(occurrenceDate.getTime() + duration) : occurrenceDate,
+          allDay: event.allDay,
+          sequence: 0, // Expanded recurring events have sequence 0
+        };
+      });
       
       return expanded.length > 0 ? expanded : [event];
     } catch (error) {

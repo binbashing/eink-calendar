@@ -44,37 +44,6 @@ app.get('/api/calendar/events', async (req, res) => {
       });
       console.log(`Found ${calendarObjects.length} events in calendar: ${calendar.displayName}`);
       
-      // Log event details for debugging (show first event as sample)
-      if (calendarObjects.length > 0) {
-        const sample = calendarObjects[0];
-        console.log('Sample ICS event:');
-        console.log(sample.data.substring(0, 500));
-        
-        // Look for Clover Bravecto event
-        const cloverEvent = calendarObjects.find(e => e.data.includes('Clover Bravecto'));
-        if (cloverEvent) {
-          console.log('\n=== CLOVER BRAVECTO EVENT ===');
-          console.log(cloverEvent.data);
-          console.log('=== END CLOVER ===\n');
-        }
-        
-        // Look for Buster Bravecto event
-        const busterEvent = calendarObjects.find(e => e.data.includes('Buster Bravecto'));
-        if (busterEvent) {
-          console.log('\n=== BUSTER BRAVECTO EVENT ===');
-          console.log(busterEvent.data);
-          console.log('=== END BUSTER ===\n');
-        }
-        
-        // Look for Game Nazareth event
-        const gameEvent = calendarObjects.find(e => e.data.includes('Game Nazareth'));
-        if (gameEvent) {
-          console.log('\n=== GAME NAZARETH EVENT ===');
-          console.log(gameEvent.data);
-          console.log('=== END GAME ===\n');
-        }
-      }
-      
       allEvents.push(...calendarObjects);
     }
 
