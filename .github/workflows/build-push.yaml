@@ -30,7 +30,7 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: binbashing/eink-calendar:latest
-          platforms: linux/amd64, linux/arm64/v8, linux/arm/v7, linux/i386
+          platforms: linux/amd64,linux/arm64
 
       - name: Update repo description
         uses: peter-evans/dockerhub-description@v3
