@@ -17,8 +17,23 @@ import { CalDAVService, CalendarEvent, calDAVService } from "./services/caldav";
  * - Color‑aware accents, bold readable type
  */
 
-// --- Configuration Constants
-const DEFAULT_BACKGROUND_COLOR = "#5E65EB";
+type FontOption = { name: string; value: string; category: string };
+
+type SidebarSettings = {
+  safeMargin: number;
+  monthFontSize: number;
+  weekdayFontSize: number;
+  eventFontSize: number;
+  backgroundColor: string;
+  monthFontFamily: string;
+  eventFontFamily: string;
+  monthBold: boolean;
+  eventBold: boolean;
+  customFonts: FontOption[];
+  fontSearchTerm: string;
+  selectedFontCategory: string;
+  useCalDAV: boolean;
+};
 
 // --- Utilities
 const pad2 = (n: number) => String(n).padStart(2, "0");
@@ -235,28 +250,30 @@ function calculateFontSizeWithShrinking(text: string, baseSize: number, containe
 // --- Main App
 export default function CalendarCustomizerApp() {
   const [today] = useState(new Date()); // Use actual current date
-  const [safeMargin, setSafeMargin] = useState(16);
-  const [monthFontSize, setMonthFontSize] = useState(70);
-  const [weekdayFontSize, setWeekdayFontSize] = useState(30);
-  const [eventFontSize, setEventFontSize] = useState(48);
-  const [backgroundColor, setBackgroundColor] = useState(DEFAULT_BACKGROUND_COLOR);
-  const [monthFontFamily, setMonthFontFamily] = useState("Delius Unicase, cursive");
-  const [eventFontFamily, setEventFontFamily] = useState("Delius Unicase, cursive");
-  const [monthBold, setMonthBold] = useState(true);
-  const [eventBold, setEventBold] = useState(true);
+  const [safeMargin, setSafeMargin] = useState(0);
+  const [monthFontSize, setMonthFontSize] = useState(0);
+  const [weekdayFontSize, setWeekdayFontSize] = useState(0);
+  const [eventFontSize, setEventFontSize] = useState(0);
+  const [backgroundColor, setBackgroundColor] = useState("#000000");
+  const [monthFontFamily, setMonthFontFamily] = useState("");
+  const [eventFontFamily, setEventFontFamily] = useState("");
+  const [monthBold, setMonthBold] = useState(false);
+  const [eventBold, setEventBold] = useState(false);
   
   // Font management states
-  const [customFonts, setCustomFonts] = useState<Array<{name: string, value: string, category: string}>>([]);
+  const [customFonts, setCustomFonts] = useState<FontOption[]>([]);
   const [fontSearchTerm, setFontSearchTerm] = useState("");
   const [selectedFontCategory, setSelectedFontCategory] = useState("All");
   const [customFontInput, setCustomFontInput] = useState("");
   const [showAddFontForm, setShowAddFontForm] = useState(false);
   
   // CalDAV integration
-  const [useCalDAV, setUseCalDAV] = useState(true);
+  const [useCalDAV, setUseCalDAV] = useState(false);
   const [calDAVEvents, setCalDAVEvents] = useState<CalendarEvent[]>([]);
   const [isLoadingEvents, setIsLoadingEvents] = useState(false);
   const [calDAVError, setCalDAVError] = useState<string | null>(null);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const [settingsLoadError, setSettingsLoadError] = useState<string | null>(null);
 
   // Combine built-in and custom fonts
   const allFonts = useMemo(() => {
@@ -344,6 +361,94 @@ export default function CalendarCustomizerApp() {
     
     document.head.appendChild(link);
   };
+
+  // Load saved settings on startup.
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const response = await fetch("/api/settings", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error(`Settings load failed (HTTP ${response.status})`);
+        }
+
+        const saved = await response.json() as SidebarSettings;
+        setSafeMargin(saved.safeMargin);
+        setMonthFontSize(saved.monthFontSize);
+        setWeekdayFontSize(saved.weekdayFontSize);
+        setEventFontSize(saved.eventFontSize);
+        setBackgroundColor(saved.backgroundColor);
+        setMonthFontFamily(saved.monthFontFamily);
+        setEventFontFamily(saved.eventFontFamily);
+        setMonthBold(saved.monthBold);
+        setEventBold(saved.eventBold);
+        setFontSearchTerm(saved.fontSearchTerm);
+        setSelectedFontCategory(saved.selectedFontCategory);
+        setUseCalDAV(saved.useCalDAV);
+
+        const loadedCustomFonts = Array.isArray(saved.customFonts) ? saved.customFonts : [];
+        setCustomFonts(loadedCustomFonts);
+
+        loadedCustomFonts.forEach((font) => loadGoogleFont(font.name));
+        loadGoogleFont(saved.monthFontFamily.split(",")[0].trim());
+        loadGoogleFont(saved.eventFontFamily.split(",")[0].trim());
+      } catch (error) {
+        console.error("Unable to load settings:", error);
+        setSettingsLoadError(error instanceof Error ? error.message : "Unable to load settings");
+      } finally {
+        setSettingsLoaded(true);
+      }
+    };
+
+    loadSettings();
+  }, []);
+
+  // Auto-save settings when sidebar values change.
+  useEffect(() => {
+    if (!settingsLoaded) return;
+
+    const saveTimer = window.setTimeout(async () => {
+      try {
+        await fetch("/api/settings", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            safeMargin,
+            monthFontSize,
+            weekdayFontSize,
+            eventFontSize,
+            backgroundColor,
+            monthFontFamily,
+            eventFontFamily,
+            monthBold,
+            eventBold,
+            customFonts,
+            fontSearchTerm,
+            selectedFontCategory,
+            useCalDAV,
+          }),
+        });
+      } catch (error) {
+        console.warn("Unable to save settings:", error);
+      }
+    }, 300);
+
+    return () => window.clearTimeout(saveTimer);
+  }, [
+    settingsLoaded,
+    safeMargin,
+    monthFontSize,
+    weekdayFontSize,
+    eventFontSize,
+    backgroundColor,
+    monthFontFamily,
+    eventFontFamily,
+    monthBold,
+    eventBold,
+    customFonts,
+    fontSearchTerm,
+    selectedFontCategory,
+    useCalDAV,
+  ]);
 
   // Handle adding custom fonts from URL
   const handleAddCustomFont = () => {
@@ -520,6 +625,23 @@ export default function CalendarCustomizerApp() {
 
   // Weekday labels
   const WD = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  if (!settingsLoaded) {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-neutral-50 text-sm text-neutral-500">
+        Loading settings...
+      </div>
+    );
+  }
+
+  if (settingsLoadError) {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-neutral-50 text-sm text-red-600">
+        Failed to load settings: {settingsLoadError}
+      </div>
+    );
+  }
+
   return (
     <>
       <style>
