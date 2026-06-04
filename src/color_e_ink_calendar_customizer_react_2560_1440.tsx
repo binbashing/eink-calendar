@@ -29,6 +29,8 @@ type SidebarSettings = {
   eventFontFamily: string;
   monthBold: boolean;
   eventBold: boolean;
+  monthFontColor: string;
+  eventFontColor: string;
   customFonts: FontOption[];
   fontSearchTerm: string;
   selectedFontCategory: string;
@@ -259,6 +261,8 @@ export default function CalendarCustomizerApp() {
   const [eventFontFamily, setEventFontFamily] = useState("");
   const [monthBold, setMonthBold] = useState(false);
   const [eventBold, setEventBold] = useState(false);
+  const [monthFontColor, setMonthFontColor] = useState("#ffffff");
+  const [eventFontColor, setEventFontColor] = useState("#000000");
   
   // Font management states
   const [customFonts, setCustomFonts] = useState<FontOption[]>([]);
@@ -381,6 +385,8 @@ export default function CalendarCustomizerApp() {
         setEventFontFamily(saved.eventFontFamily);
         setMonthBold(saved.monthBold);
         setEventBold(saved.eventBold);
+        setMonthFontColor(saved.monthFontColor ?? "#ffffff");
+        setEventFontColor(saved.eventFontColor ?? "#000000");
         setFontSearchTerm(saved.fontSearchTerm);
         setSelectedFontCategory(saved.selectedFontCategory);
         setUseCalDAV(saved.useCalDAV);
@@ -421,6 +427,8 @@ export default function CalendarCustomizerApp() {
             eventFontFamily,
             monthBold,
             eventBold,
+            monthFontColor,
+            eventFontColor,
             customFonts,
             fontSearchTerm,
             selectedFontCategory,
@@ -444,6 +452,8 @@ export default function CalendarCustomizerApp() {
     eventFontFamily,
     monthBold,
     eventBold,
+    monthFontColor,
+    eventFontColor,
     customFonts,
     fontSearchTerm,
     selectedFontCategory,
@@ -646,7 +656,6 @@ export default function CalendarCustomizerApp() {
     <>
       <style>
         {`
-          .gmail-theme .month-title,
           .gmail-theme .weekday-header {
             color: #ffffff !important;
           }
@@ -823,6 +832,18 @@ export default function CalendarCustomizerApp() {
                 </span>
               </div>
 
+              <Label>Month title color</Label>
+              <div className="px-2 flex items-center gap-2">
+                <input 
+                  type="color" 
+                  value={monthFontColor} 
+                  onChange={(e) => setMonthFontColor(e.target.value)}
+                  className="w-12 h-8 rounded border cursor-pointer"
+                  title="Choose month title font color"
+                />
+                <span className="text-sm font-mono flex-1">{monthFontColor}</span>
+              </div>
+
               <Label>Event text bold</Label>
               <div className="px-2 flex items-center">
                 <input 
@@ -834,6 +855,18 @@ export default function CalendarCustomizerApp() {
                 <span className="ml-2 text-sm">
                   {eventBold ? 'Bold' : 'Normal'}
                 </span>
+              </div>
+
+              <Label>Event text color</Label>
+              <div className="px-2 flex items-center gap-2">
+                <input 
+                  type="color" 
+                  value={eventFontColor} 
+                  onChange={(e) => setEventFontColor(e.target.value)}
+                  className="w-12 h-8 rounded border cursor-pointer"
+                  title="Choose event font color"
+                />
+                <span className="text-sm font-mono flex-1">{eventFontColor}</span>
               </div>
             </div>
 
@@ -984,6 +1017,7 @@ export default function CalendarCustomizerApp() {
                 fontSize: Math.min(monthFontSize, availableW / 15), 
                 fontFamily: monthFontFamily,
                 fontWeight: monthBold ? 900 : 400,
+                color: monthFontColor,
                 lineHeight: 1,
                 height: 60 
               }}
@@ -1093,7 +1127,7 @@ export default function CalendarCustomizerApp() {
                               <div 
                                 className="all-day-event-text"
                                 style={{ 
-                                color: '#000000', // Dark text for readability on colored backgrounds
+                                color: eventFontColor,
                                 fontFamily: eventFontFamily,
                                 fontWeight: eventBold ? 700 : 400,
                                 fontSize: `${adjustedFontSize}px`, // Apply shrunk font size
@@ -1170,7 +1204,7 @@ export default function CalendarCustomizerApp() {
                             }}
                           >
                             <div style={{ 
-                              color: '#000000', // Black text for events on white background
+                              color: eventFontColor,
                               overflow: 'hidden',
                               textOverflow: 'clip', // Always clip instead of ellipsis since we handle sizing with font shrinking
                               whiteSpace: shouldWrapTimed ? 'normal' : 'nowrap', // Only wrap if font shrinking wasn't enough
