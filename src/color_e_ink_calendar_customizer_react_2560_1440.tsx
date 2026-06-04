@@ -656,13 +656,6 @@ export default function CalendarCustomizerApp() {
     <>
       <style>
         {`
-
-          .gmail-theme .day-cell * {
-            color: #000000 !important;
-          }
-          .gmail-theme .day-cell .today-date {
-            color: #FFFFFF !important;
-          }
         `}
       </style>
       <div className="w-full h-full flex gap-4 p-4 bg-neutral-50">
@@ -1151,7 +1144,7 @@ export default function CalendarCustomizerApp() {
                         style={{ 
                           fontSize: 30,
                           fontWeight: '900',
-                          color: isToday ? '#FFFFFF' : '#000000', // White text for today, black for others
+                          color: isToday ? monthFontColor : '#000000',
                           lineHeight: 1,
                           width: '40px',
                           height: '40px',
