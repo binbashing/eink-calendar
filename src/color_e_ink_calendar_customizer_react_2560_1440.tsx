@@ -656,9 +656,7 @@ export default function CalendarCustomizerApp() {
     <>
       <style>
         {`
-          .gmail-theme .weekday-header {
-            color: #ffffff !important;
-          }
+
           .gmail-theme .day-cell * {
             color: #000000 !important;
           }
@@ -1041,7 +1039,7 @@ export default function CalendarCustomizerApp() {
                   className="text-center font-bold flex items-center justify-center weekday-header" 
                   style={{ 
                     fontSize: Math.min(weekdayFontSize, cellW / 8),
-                    color: '#ffffff !important',
+                    color: monthFontColor,
                     width: `${cellW}px`
                   }}
                 >
