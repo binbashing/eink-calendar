@@ -10,9 +10,11 @@ RUN npm install
 # Copy source code
 COPY . .
 
+# Build production bundle
+RUN npm run build
 
-# Expose both Vite and CalDAV proxy ports (now 4000 and 4001)
-EXPOSE 4000 4001
+# Expose both CalDAV proxy and preview ports
+EXPOSE 4000 3000
 
-# Default command: run both dev servers
-CMD ["npm", "run", "dev:full"]
+# Run production server with CalDAV proxy
+CMD ["npm", "run", "prod:full"]

@@ -2,7 +2,7 @@ services:
   calendar-app:
     build: .
     ports:
-      - "4000:4000"
+      - "3000:3000"
       - "4001:4001"
     environment:
       - NODE_ENV=development

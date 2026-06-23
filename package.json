@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "screenshot": "node screenshot.js",
     "proxy": "node server/caldav-proxy.js",
-    "dev:full": "concurrently \"npm run proxy\" \"npm run dev\""
+    "dev:full": "concurrently \"npm run proxy\" \"npm run dev\"",
+    "prod:full": "concurrently \"npm run proxy\" \"npm start\""
   },
   "keywords": [],
   "author": "",
