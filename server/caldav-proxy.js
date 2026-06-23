@@ -105,9 +105,29 @@ app.put('/api/settings', async (req, res) => {
   }
 });
 
+function getCalDAVConfig() {
+  return {
+    serverUrl: process.env.VITE_CALDAV_SERVER_URL || '',
+    username: process.env.VITE_CALDAV_USERNAME || '',
+    password: process.env.VITE_CALDAV_PASSWORD || '',
+    calendarFilter: process.env.VITE_CALDAV_CALENDAR_FILTER || '',
+  };
+}
+
 app.get('/api/calendar/events', async (req, res) => {
   try {
-    const { serverUrl, username, password, startDate, endDate, calendarFilter } = req.query;
+    const { startDate, endDate } = req.query;
+    const { serverUrl, username, password, calendarFilter } = getCalDAVConfig();
+
+    if (!serverUrl || !username || !password) {
+      return res.status(400).json({
+        error: 'CalDAV credentials not configured on server. Set VITE_CALDAV_SERVER_URL, VITE_CALDAV_USERNAME, and VITE_CALDAV_PASSWORD in the server environment.',
+      });
+    }
+
+    if (!startDate || !endDate) {
+      return res.status(400).json({ error: 'startDate and endDate are required' });
+    }
     
     const client = await createDAVClient({
       serverUrl: String(serverUrl),

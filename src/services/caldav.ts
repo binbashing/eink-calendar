@@ -1,4 +1,3 @@
-import { createDAVClient } from 'tsdav';
 import { RRule, RRuleSet, rrulestr } from 'rrule';
 
 export interface CalendarEvent {
@@ -12,52 +11,7 @@ export interface CalendarEvent {
 }
 
 export class CalDAVService {
-  private client: any = null;
-  private serverUrl: string;
-  private username: string;
-  private password: string;
-  private calendarFilter: string;
-
-  constructor() {
-    this.serverUrl = import.meta.env.VITE_CALDAV_SERVER_URL || '';
-    this.username = import.meta.env.VITE_CALDAV_USERNAME || '';
-    this.password = import.meta.env.VITE_CALDAV_PASSWORD || '';
-    this.calendarFilter = import.meta.env.VITE_CALDAV_CALENDAR_FILTER || '';
-  }
-
-  async connect() {
-    if (!this.serverUrl || !this.username || !this.password) {
-      throw new Error('CalDAV credentials not configured. Please set VITE_CALDAV_* environment variables.');
-    }
-
-    try {
-      this.client = await createDAVClient({
-        serverUrl: this.serverUrl,
-        credentials: {
-          username: this.username,
-          password: this.password,
-        },
-        authMethod: 'Basic',
-        defaultAccountType: 'caldav',
-      });
-      console.log('Connected to CalDAV server');
-    } catch (error) {
-      console.error('Failed to connect to CalDAV server:', error);
-      
-      // Check if it's a CORS error
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        throw new Error('CORS Error: Direct CalDAV access blocked by browser. Try using a backend proxy or CORS browser extension.');
-      }
-      
-      throw error;
-    }
-  }
-
   async fetchEvents(startDate: Date, endDate: Date): Promise<CalendarEvent[]> {
-    if (!this.serverUrl || !this.username || !this.password) {
-      throw new Error('CalDAV credentials not configured');
-    }
-
     // Store the requested date range for RRULE expansion
     this.requestedStartDate = startDate;
     this.requestedEndDate = endDate;
@@ -67,19 +21,11 @@ export class CalDAVService {
       const extendedEndDate = new Date(endDate);
       extendedEndDate.setDate(extendedEndDate.getDate() + 1);
       
-      // Use backend proxy instead of direct CalDAV calls to avoid CORS
+      // Fetch through backend proxy; server owns CalDAV credentials.
       const params = new URLSearchParams({
-        serverUrl: this.serverUrl,
-        username: this.username,
-        password: this.password,
         startDate: startDate.toISOString(),
         endDate: extendedEndDate.toISOString(),
       });
-
-      // Add calendar filter if specified
-      if (this.calendarFilter) {
-        params.append('calendarFilter', this.calendarFilter);
-      }
 
       const response = await fetch(`/api/calendar/events?${params}`);
 
@@ -408,9 +354,6 @@ export class CalDAVService {
     });
   }
 
-  isConfigured(): boolean {
-    return !!(this.serverUrl && this.username && this.password);
-  }
 }
 
 export const calDAVService = new CalDAVService();

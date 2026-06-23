@@ -8,7 +8,7 @@ import { Download, Settings2, Calendar, Wifi } from "lucide-react";
 // NOTE: For PNG export, ensure html-to-image is available in your environment
 // npm i html-to-image --save
 import * as htmlToImage from "html-to-image";
-import { CalDAVService, CalendarEvent, calDAVService } from "./services/caldav";
+import { CalendarEvent, calDAVService } from "./services/caldav";
 
 /**
  * Color E‑Ink Calendar Customizer
@@ -532,7 +532,7 @@ export default function CalendarCustomizerApp() {
 
   // Load CalDAV events when enabled
   useEffect(() => {
-    if (useCalDAV && calDAVService.isConfigured()) {
+    if (useCalDAV) {
       fetchCalDAVEvents();
     }
   }, [useCalDAV]);
@@ -882,70 +882,51 @@ export default function CalendarCustomizerApp() {
                 id="use-caldav"
                 checked={useCalDAV}
                 onChange={(e) => setUseCalDAV(e.target.checked)}
-                disabled={!calDAVService.isConfigured()}
                 className="w-4 h-4"
               />
             </div>
-            
-            {!calDAVService.isConfigured() && (
-              <div className="text-sm text-amber-600 bg-amber-50 p-2 rounded">
-                <strong>Setup required:</strong> Configure CalDAV credentials in .env file
+
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Wifi className="w-4 h-4 text-green-500" />
+                <span className="text-sm text-green-600">CalDAV via backend proxy</span>
               </div>
-            )}
-            
-            {calDAVService.isConfigured() && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Wifi className="w-4 h-4 text-green-500" />
-                  <span className="text-sm text-green-600">CalDAV configured</span>
+
+              {useCalDAV && (
+                <Button 
+                  onClick={fetchCalDAVEvents} 
+                  disabled={isLoadingEvents}
+                  variant="outline"
+                  size="sm"
+                >
+                  {isLoadingEvents ? 'Loading...' : 'Refresh Events'}
+                </Button>
+              )}
+
+              {calDAVError && (
+                <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+                  <strong>Error:</strong> {calDAVError}
                 </div>
-                
-                <div className="text-xs text-gray-600">
-                  Calendar filter: <strong>{(import.meta as any).env.VITE_CALDAV_CALENDAR_FILTER || 'All calendars'}</strong>
+              )}
+
+              {useCalDAV && calDAVEvents.length > 0 && (
+                <div className="text-sm text-blue-600">
+                  ✅ Loaded {calDAVEvents.length} events from calendar
                 </div>
-                
-                {useCalDAV && (
-                  <Button 
-                    onClick={fetchCalDAVEvents} 
-                    disabled={isLoadingEvents}
-                    variant="outline"
-                    size="sm"
-                  >
-                    {isLoadingEvents ? 'Loading...' : 'Refresh Events'}
-                  </Button>
-                )}
-                
-                {calDAVError && (
-                  <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
-                    <strong>Error:</strong> {calDAVError}
-                    {calDAVError.includes('CORS') && (
-                      <div className="mt-2 text-xs">
-                        <strong>Solution:</strong> CalDAV requires a backend proxy for browser access. 
-                        <br />Alternative: Install a CORS browser extension for development.
-                      </div>
-                    )}
-                  </div>
-                )}
-                
-                {useCalDAV && calDAVEvents.length > 0 && (
-                  <div className="text-sm text-blue-600">
-                    ✅ Loaded {calDAVEvents.length} events from calendar
-                  </div>
-                )}
-                
-                {useCalDAV && calDAVEvents.length === 0 && !isLoadingEvents && !calDAVError && (
-                  <div className="text-sm text-yellow-600">
-                    ⚠️ No events found in calendar for this month
-                  </div>
-                )}
-                
-                {!useCalDAV && (
-                  <div className="text-sm text-gray-600">
-                    📋 Using sample events (CalDAV disabled)
-                  </div>
-                )}
-              </div>
-            )}
+              )}
+
+              {useCalDAV && calDAVEvents.length === 0 && !isLoadingEvents && !calDAVError && (
+                <div className="text-sm text-yellow-600">
+                  ⚠️ No events found in calendar for this month
+                </div>
+              )}
+
+              {!useCalDAV && (
+                <div className="text-sm text-gray-600">
+                  📋 Using sample events (CalDAV disabled)
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
         <Card>
